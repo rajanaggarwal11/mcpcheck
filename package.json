@@ -1,6 +1,6 @@
 {
   "name": "mcpcheck",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Correctness checks for MCP servers. Contract drift, schema honesty, annotation honesty and description lint — the things an AI client cannot verify and nothing errors on.",
   "keywords": [
     "mcp",
