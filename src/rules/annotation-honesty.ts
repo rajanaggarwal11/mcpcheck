@@ -3,7 +3,7 @@ import type { Finding, Inspection, Rule } from "../types.js";
 const DESTRUCTIVE =
   /^(delete|remove|rm|drop|destroy|purge|wipe|truncate|erase|reset|kill|revoke|unpublish|cancel|terminate|clear)([_\-.]|$)/i;
 const WRITES =
-  /^(create|write|update|set|put|post|send|insert|add|upload|modify|edit|patch|move|rename|save|append|push|publish|deploy|run|exec|execute|start|stop|restart|enable|disable|assign|merge|commit|apply)([_\-.]|$)/i;
+  /^(create|write|update|set|put|post|send|insert|add|upload|modify|edit|patch|move|rename|save|append|push|publish|deploy|exec|execute|start|stop|restart|enable|disable|assign|merge|commit|apply)([_\-.]|$)/i;
 const READS =
   /^(get|list|read|fetch|search|find|query|describe|show|lookup|check|count|view|inspect|status|info|browse|ls)([_\-.]|$)/i;
 

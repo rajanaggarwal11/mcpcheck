@@ -1,10 +1,22 @@
 import type { Finding, Inspection, Rule } from "../types.js";
 
+/**
+ * A name that can only mean a shell. `execute_functionality` or `run_report`
+ * are not on this list on purpose: "execute" and "run" name half the tools on
+ * npm, and a bare verb convicts nothing — it takes a command-shaped parameter
+ * as well (below).
+ */
 const SHELL_NAME =
-  /(^|[_\-.])(exec|execute|shell|bash|zsh|sh|cmd|command|run_command|eval|powershell|terminal|system)([_\-.]|$)/i;
+  /(^|[_\-.])(shell|bash|zsh|sh|powershell|terminal|eval|system_command|shell_command)([_\-.]|$)|(^|[_\-.])(run|exec|execute)[_\-.](command|commands|cmd|shell)([_\-.]|$)/i;
 const SHELL_PARAM = /^(command|cmd|script|shell|code|expression|bash|sh)$/i;
+const SHELL_VERB = /\b(run|runs|exec|execute|executes|shell|command|cmd|terminal|system)\b/i;
+/**
+ * "arbitrary code" and "any command" describe a terminal. "any code" does not —
+ * an authorization code, a status code, "any code returned" — so `code` needs
+ * "arbitrary" or an executing verb in front of it.
+ */
 const SHELL_DESC =
-  /\b(arbitrary|any)\s+(shell\s+|system\s+|terminal\s+)?(command|code|script)s?\b|\bruns?\s+(a\s+)?(shell|bash|system)\s+command/i;
+  /\barbitrary\s+(shell\s+|system\s+|terminal\s+)?(command|code|script)s?\b|\bany\s+(shell\s+|system\s+|terminal\s+)?(command|script)s?\b|\bruns?\s+(a\s+)?(shell|bash|system)\s+command|\b(execute|run|eval|evaluate)s?\s+(arbitrary\s+|any\s+|user[- ]provided\s+)?(javascript|python|code)\b/i;
 
 const WRITE_NAME =
   /(^|[_\-.])(write|delete|remove|rm|unlink|move|mv|rename|chmod|chown|truncate|overwrite|append)([_\-.]|$)/i;
@@ -32,11 +44,7 @@ export const overBroadTool: Rule = {
       const shellByName = SHELL_NAME.test(tool.name);
       const shellByParam = props.find((p) => SHELL_PARAM.test(p));
       const shellByDesc = SHELL_DESC.test(desc);
-      if (
-        shellByName ||
-        shellByDesc ||
-        (shellByParam && /\b(run|exec|shell|command)/i.test(tool.name + " " + desc))
-      ) {
+      if (shellByName || shellByDesc || (shellByParam && SHELL_VERB.test(tool.name + " " + desc))) {
         findings.push({
           rule: overBroadTool.id,
           severity: "error",

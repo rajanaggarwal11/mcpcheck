@@ -192,3 +192,36 @@ describe("schema-validity", () => {
     expect(await findings("clean.mjs", ["schema-validity"])).toEqual([]);
   });
 });
+
+describe("calibration — what the most-downloaded servers on npm actually say", () => {
+  it("does not mistake 'do not include … credentials' for a request to send them", async () => {
+    const fs = await findings("benign.mjs", ["description-lint"]);
+    expect(fs.filter((f) => f.tool === "query-docs" && /credentials/.test(f.message))).toEqual([]);
+  });
+
+  it("reports a workflow imperative as a warning, not a build failure", async () => {
+    const fs = await findings("benign.mjs", ["description-lint"]);
+    const hit = fs.find((f) => f.tool === "query-docs" && /imperative/.test(f.message));
+    expect(hit?.severity).toBe("warn");
+  });
+
+  it("a hook in the instructions field is a warning; the same hook in a tool description is an error", async () => {
+    const fs = await findings("benign.mjs", ["description-lint"]);
+    expect(fs.find((f) => f.tool === undefined && /hooks itself/.test(f.message))?.severity).toBe(
+      "warn",
+    );
+    expect(fs.find((f) => f.tool === "helper" && /hooks itself/.test(f.message))?.severity).toBe(
+      "error",
+    );
+  });
+
+  it("does not read 'any code' outside an execution context, or a bare execute_ name, as a terminal", async () => {
+    const fs = await findings("benign.mjs", ["over-broad-tool"]);
+    expect(tools(fs)).toEqual(["create_cron_job"]);
+    expect(fs[0]?.severity).toBe("error");
+  });
+
+  it("does not treat run_ as a write verb", async () => {
+    expect(await findings("benign.mjs", ["annotation-honesty"])).toEqual([]);
+  });
+});
