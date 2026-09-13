@@ -1,0 +1,77 @@
+{
+  "name": "mcpcheck",
+  "version": "0.1.0",
+  "description": "Correctness checks for MCP servers. Contract drift, schema honesty, annotation honesty and description lint — the things an AI client cannot verify and nothing errors on.",
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "mcp-server",
+    "ai-agents",
+    "llm",
+    "tools",
+    "contract-testing",
+    "lint",
+    "cli",
+    "typescript"
+  ],
+  "license": "MIT",
+  "author": "Rajan Aggarwal",
+  "homepage": "https://github.com/rajanaggarwal11/mcpcheck#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rajanaggarwal11/mcpcheck.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rajanaggarwal11/mcpcheck/issues"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "bin": {
+    "mcpcheck": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "pnpm lint && pnpm typecheck && pnpm build && pnpm test",
+    "attw": "attw --pack . --ignore-rules no-resolution cjs-resolves-to-esm",
+    "publint": "publint"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "picocolors": "^1.1.1"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@changesets/changelog-github": "^1.0.1",
+    "@changesets/cli": "^3.0.2",
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.10.2",
+    "eslint": "^10.10.0",
+    "prettier": "^3.4.2",
+    "publint": "^0.3.24",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.1",
+    "vitest": "^5.0.0",
+    "zod": "^3.24.0"
+  },
+  "packageManager": "pnpm@11.22.0"
+}
