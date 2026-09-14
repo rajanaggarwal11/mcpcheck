@@ -135,6 +135,10 @@ const inspection = await inspect({ kind: "stdio", command: "node", args: ["./ser
 
 **Heuristics are labelled.** Annotation honesty and over-broad detection work from names and parameter shapes. They will flag a `delete_cache` tool that is genuinely harmless. That's the point: a human then reads it, which is more than happens today. A bare verb never convicts on its own — `execute_report` is not a terminal until it takes a `command`.
 
+## The other side of the wire
+
+mcpcheck reads what a server tells the model. [ctxlint](https://github.com/rajanaggarwal11/ctxlint) reads what your app tells the model — a local proxy that lints every request to Anthropic or OpenAI for unused tools, cache misses, secrets and injection arriving in tool results.
+
 ## Requirements
 
 Node 22.13 or newer. Works with any server speaking MCP over stdio or Streamable HTTP; built on the official `@modelcontextprotocol/sdk`.
