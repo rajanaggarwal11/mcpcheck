@@ -143,6 +143,10 @@ mcpcheck reads what a server tells the model. [ctxlint](https://github.com/rajan
 
 Node 22.13 or newer. Works with any server speaking MCP over stdio or Streamable HTTP; built on the official `@modelcontextprotocol/sdk`.
 
+## Working with me
+
+**Shipping an MCP server?** I review servers before release — the injection surface, the annotations, the contract, the things a client cannot check — and hand back a report with the fixes. Sponsor the project, or write to me: [aggarwal11.rajan05@gmail.com](mailto:aggarwal11.rajan05@gmail.com).
+
 ## License
 
 [MIT](./LICENSE) © Rajan Aggarwal
