@@ -39,7 +39,7 @@ ${pc.bold("Options")}
   --ignore <ids>       Skip these rules (comma-separated)
   --strict             Exit non-zero on warnings too, not just errors
   --json               Machine-readable output (stable shape, version 1)
-  --timeout <ms>       Handshake timeout (default 15000)
+  --timeout <time>     Handshake timeout: 15000, 1500ms, 30s (default 15s)
   --list-rules         Print every rule and what it checks
   -v, --version        Print the version
   -h, --help           Print this
@@ -87,6 +87,14 @@ function ruleList(value: string | undefined, flag: string): RuleId[] {
   return ids as RuleId[];
 }
 
+/** Milliseconds from "15000", "1500ms" or "30s" (decimals allowed); NaN for anything else. */
+export function parseDuration(text: string): number {
+  const m = /^(\d+(?:\.\d+)?)\s*(ms|s)?$/i.exec(text.trim());
+  if (!m) return Number.NaN;
+  const n = Number(m[1]);
+  return Math.round(m[2]?.toLowerCase() === "s" ? n * 1000 : n);
+}
+
 export async function run(argv: string[] = process.argv.slice(2)): Promise<number> {
   let values: Record<string, unknown>;
   let positionals: string[];
@@ -121,9 +129,11 @@ export async function run(argv: string[] = process.argv.slice(2)): Promise<numbe
   const asJson = Boolean(values.json);
   try {
     const target = parseTarget(positionals);
-    const timeoutMs = values.timeout ? Number(values.timeout) : undefined;
+    const timeoutMs = values.timeout ? parseDuration(String(values.timeout)) : undefined;
     if (timeoutMs !== undefined && !(timeoutMs > 0))
-      throw new Error("--timeout must be a positive number of milliseconds");
+      throw new Error(
+        `--timeout expects a duration like 15000, 1500ms or 30s, got "${values.timeout}"`,
+      );
 
     const result = await check(target, {
       only: ruleList(values.only as string | undefined, "--only"),
