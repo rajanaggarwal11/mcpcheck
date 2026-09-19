@@ -1,5 +1,7 @@
 # mcpcheck
 
+[![CI](https://github.com/rajanaggarwal11/mcpcheck/actions/workflows/ci.yml/badge.svg)](https://github.com/rajanaggarwal11/mcpcheck/actions/workflows/ci.yml) [![CodeQL](https://github.com/rajanaggarwal11/mcpcheck/actions/workflows/codeql.yml/badge.svg)](https://github.com/rajanaggarwal11/mcpcheck/actions/workflows/codeql.yml) [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+
 **Correctness checks for MCP servers.** An AI client only knows what your server _tells_ it — a name, a description, a schema, four hints. If any of those is wrong, the model calls the tool wrong, obeys text it shouldn't, or skips a confirmation it needed. Nothing errors. The agent just does the wrong thing, confidently.
 
 `mcpcheck` reads exactly what the model reads and checks the things the model can't.
