@@ -107,7 +107,7 @@ The three errors are real: each names a tool that takes a command or code string
 --ignore <ids>       Skip these rules (comma-separated)
 --strict             Exit non-zero on warnings too
 --json               Machine-readable output
---timeout <ms>       Handshake timeout (default 15000)
+--timeout <time>     Handshake timeout: 15000, 1500ms, 30s (default 15s)
 --list-rules         Print every rule and what it checks
 ```
 

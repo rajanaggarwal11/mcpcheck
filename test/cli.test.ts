@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { run } from "../src/cli.js";
+import { parseDuration, run } from "../src/cli.js";
 
 const fixture = (name: string) => fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url));
 
@@ -96,6 +96,17 @@ describe("usage", () => {
     expect(r.code).toBe(2);
     expect(r.stderr).toContain("before completing the MCP handshake");
     expect(r.stderr).toContain("fatal: config missing");
+  });
+
+  it("--timeout takes milliseconds or a unit, and refuses anything else with an example", async () => {
+    expect(parseDuration("15000")).toBe(15000);
+    expect(parseDuration("1500ms")).toBe(1500);
+    expect(parseDuration("30s")).toBe(30000);
+    expect(parseDuration("2.5s")).toBe(2500);
+    expect(parseDuration("5m")).toBeNaN();
+    const r = await cli("--timeout", "soon", "--", process.execPath, "-e", "process.exit(0)");
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain('like 15000, 1500ms or 30s, got "soon"');
   });
 
   it("exits 2 when the command is not an MCP server", async () => {
