@@ -139,7 +139,7 @@ const inspection = await inspect({ kind: "stdio", command: "node", args: ["./ser
 
 ## The other side of the wire
 
-mcpcheck reads what a server tells the model. [ctxlint](https://github.com/rajanaggarwal11/ctxlint) reads what your app tells the model — a local proxy that lints every request to Anthropic or OpenAI for unused tools, cache misses, secrets and injection arriving in tool results.
+mcpcheck reads what a server tells the model. [tokenwire](https://github.com/rajanaggarwal11/tokenwire) reads what your app tells the model — a local proxy that lints every request to Anthropic or OpenAI for unused tools, cache misses, secrets and injection arriving in tool results.
 
 ## Requirements
 
