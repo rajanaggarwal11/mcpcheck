@@ -1,5 +1,11 @@
 # mcpcheck
 
+## 0.1.1
+
+### Patch Changes
+
+- [#12](https://github.com/rajanaggarwal11/mcpcheck/pull/12) [`458e593`](https://github.com/rajanaggarwal11/mcpcheck/commit/458e593d7ffce3409e05bd65efd8c6e1b8592ba5) Thanks [@rajanaggarwal11](https://github.com/rajanaggarwal11)! - `--timeout` takes a unit: `30s`, `1500ms`, or plain milliseconds as before. Anything else is refused with an example.
+
 ## 0.1.0
 
 ### Minor Changes
