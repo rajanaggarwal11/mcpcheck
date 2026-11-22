@@ -24,7 +24,7 @@ function version(): string {
 }
 
 const HELP = `
-${pc.bold("mcpcheck")} — correctness checks for MCP servers
+${pc.bold("mcpcheck")} — lint an MCP server the way the model reads it
 
 ${pc.bold("Usage")}
   mcpcheck [options] <url>               Streamable HTTP server
