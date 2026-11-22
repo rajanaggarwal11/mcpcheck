@@ -126,7 +126,15 @@ describe("over-broad-tool", () => {
     const fs = await findings("over-broad.mjs", ["over-broad-tool"]);
     const hit = fs.find((f) => f.tool === "run_command");
     expect(hit?.severity).toBe("error");
-    expect(hit?.message).toContain("terminal");
+    expect(hit?.message).toContain("arbitrary commands or code");
+  });
+
+  it("flags code evaluation without claiming the model has a shell", async () => {
+    // next-devtools-mcp's browser_eval runs JavaScript in a page, not a command on the host.
+    const fs = await findings("over-broad.mjs", ["over-broad-tool"]);
+    const hit = fs.find((f) => f.tool === "browser_eval");
+    expect(hit?.severity).toBe("error");
+    expect(hit?.message).not.toMatch(/terminal|shell/);
   });
 
   it("warns on a write to an unconstrained path, and not on a constrained one", async () => {

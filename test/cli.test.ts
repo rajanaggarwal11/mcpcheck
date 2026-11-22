@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
-import { parseDuration, run } from "../src/cli.js";
+import { parseDuration, run, splitArgv } from "../src/cli.js";
 
 const fixture = (name: string) => fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url));
 
@@ -40,11 +40,11 @@ async function cli(...args: string[]): Promise<Captured> {
 /** A fixture server, with its own snapshot file so tests never share state. */
 const against = (name: string, ...extra: string[]) =>
   cli(
-    process.execPath,
-    fixture(name),
     "--snapshot",
     join(tmp, `${name}-${extra.join("").replace(/\W/g, "")}.json`),
     ...extra,
+    process.execPath,
+    fixture(name),
   );
 
 describe("usage", () => {
@@ -111,7 +111,7 @@ describe("usage", () => {
 
   it("exits 2 when the command is not an MCP server", async () => {
     // A process that exits immediately never completes the handshake.
-    const r = await cli(process.execPath, "-e", "process.exit(0)", "--timeout", "3000");
+    const r = await cli("--timeout", "3000", process.execPath, "-e", "process.exit(0)");
     expect(r.code).toBe(2);
     expect(r.stderr).toMatch(/✗/);
   });
@@ -161,48 +161,141 @@ describe("--update", () => {
   it("accepts a drifted contract and the next run passes", async () => {
     const snap = join(tmp, "flow.json");
     const v1 = await cli(
-      process.execPath,
-      fixture("drift-v1.mjs"),
       "--snapshot",
       snap,
       "--only",
       "contract-drift",
+      process.execPath,
+      fixture("drift-v1.mjs"),
     );
     expect(v1.code).toBe(0);
     expect(v1.stdout).toContain("no snapshot yet");
 
     const drifted = await cli(
-      process.execPath,
-      fixture("drift-v2.mjs"),
       "--snapshot",
       snap,
       "--only",
       "contract-drift",
+      process.execPath,
+      fixture("drift-v2.mjs"),
     );
     expect(drifted.code).toBe(1);
     expect(drifted.stdout).toContain("send_invoice");
     expect(drifted.stdout).toContain("--update");
 
     const accepted = await cli(
-      process.execPath,
-      fixture("drift-v2.mjs"),
       "--snapshot",
       snap,
       "--only",
       "contract-drift",
       "--update",
+      process.execPath,
+      fixture("drift-v2.mjs"),
     );
     expect(accepted.code).toBe(0);
 
     const after = await cli(
-      process.execPath,
-      fixture("drift-v2.mjs"),
       "--snapshot",
       snap,
       "--only",
       "contract-drift",
+      process.execPath,
+      fixture("drift-v2.mjs"),
     );
     expect(after.code).toBe(0);
     expect(after.stdout).toContain("No problems found");
+  });
+});
+
+describe("the server's command line", () => {
+  /** The arguments echo-argv.mjs received, read back from its instructions field. */
+  const serverArgv = (stdout: string) =>
+    JSON.parse((JSON.parse(stdout) as { server: { instructions: string } }).server.instructions);
+
+  it("passes every argument from the command on to the server, -y and other flags included", async () => {
+    const snap = join(tmp, "argv.json");
+    const r = await cli(
+      "--json",
+      "--snapshot",
+      snap,
+      process.execPath,
+      fixture("echo-argv.mjs"),
+      "-y",
+      "--port",
+      "0",
+      "-v",
+      "--",
+      "./data",
+    );
+    expect(r.code).toBe(0);
+    expect(serverArgv(r.stdout)).toEqual(["-y", "--port", "0", "-v", "--", "./data"]);
+    expect(r.stderr).toBe("");
+  });
+
+  it("hands an mcpcheck option after the command to the server, and says so", async () => {
+    const snap = join(tmp, "argv-late.json");
+    const r = await cli("--snapshot", snap, process.execPath, fixture("echo-argv.mjs"), "--json");
+    expect(r.code).toBe(0);
+    expect(r.stdout).toContain("argv-server");
+    expect(r.stderr).toContain("--json came after the server command");
+  });
+
+  it("stays quiet about server flags that follow an explicit --", async () => {
+    const snap = join(tmp, "argv-sep.json");
+    const r = await cli(
+      "--json",
+      "--snapshot",
+      snap,
+      "--",
+      process.execPath,
+      fixture("echo-argv.mjs"),
+      "--json",
+    );
+    expect(r.code).toBe(0);
+    expect(serverArgv(r.stdout)).toEqual(["--json"]);
+    expect(r.stderr).toBe("");
+  });
+
+  it("splits at the first positional, minding options that take a value", () => {
+    expect(splitArgv(["npx", "-y", "@modelcontextprotocol/server-filesystem", "./data"])).toEqual({
+      own: [],
+      server: ["npx", "-y", "@modelcontextprotocol/server-filesystem", "./data"],
+      separated: false,
+    });
+    expect(
+      splitArgv(["--timeout", "5000", "--strict", "--only=contract-drift", "npx", "-y", "pkg"]),
+    ).toEqual({
+      own: ["--timeout", "5000", "--strict", "--only=contract-drift"],
+      server: ["npx", "-y", "pkg"],
+      separated: false,
+    });
+    expect(splitArgv(["--json", "--", "node", "s.js", "--json"])).toEqual({
+      own: ["--json"],
+      server: ["node", "s.js", "--json"],
+      separated: true,
+    });
+  });
+
+  it("still reads options after a URL, which takes no arguments of its own", () => {
+    expect(splitArgv(["http://localhost:3000/mcp", "--json", "--timeout", "30s"])).toEqual({
+      own: ["--json", "--timeout", "30s"],
+      server: ["http://localhost:3000/mcp"],
+      separated: false,
+    });
+  });
+
+  it("refuses an unknown option before the command, and says where server flags go", async () => {
+    for (const bad of ["--port", "-y"]) {
+      const r = await cli(bad, "0", "node", "./server.js");
+      expect(r.code).toBe(2);
+      expect(r.stderr).toContain(`unknown option ${bad}`);
+      expect(r.stderr).toContain("passed to the server");
+    }
+  });
+
+  it("reads mcpcheck's own options before the command", async () => {
+    const r = await cli("--timeout", "soon", "node", "./server.js");
+    expect(r.code).toBe(2);
+    expect(r.stderr).toContain('got "soon"');
   });
 });
