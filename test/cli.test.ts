@@ -298,4 +298,29 @@ describe("the server's command line", () => {
     expect(r.code).toBe(2);
     expect(r.stderr).toContain('got "soon"');
   });
+
+  it("accepts --no-color and --color before the command", async () => {
+    for (const flag of ["--no-color", "--color"]) {
+      const r = await cli(flag, "--list-rules");
+      expect(r.code).toBe(0);
+      expect(r.stdout).toContain("contract-drift");
+    }
+    expect(splitArgv(["--no-color", "node", "s.js"])).toEqual({
+      own: ["--no-color"],
+      server: ["node", "s.js"],
+      separated: false,
+    });
+  });
+
+  it("says an option that takes a value needs one, rather than take -- or the end", async () => {
+    for (const argv of [
+      ["--snapshot", "--", "node", "s.js"],
+      ["--snapshot"],
+      ["--json", "--timeout"],
+    ]) {
+      const r = await cli(...argv);
+      expect(r.code).toBe(2);
+      expect(r.stderr).toMatch(/--(snapshot|timeout) needs a value/);
+    }
+  });
 });

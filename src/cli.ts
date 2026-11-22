@@ -43,6 +43,7 @@ ${pc.bold("Options")}
   --json               Machine-readable output (stable shape, version 1)
   --timeout <time>     Handshake timeout: 15000, 1500ms, 30s (default 15s)
   --list-rules         Print every rule and what it checks
+  --no-color, --color  Turn colour off, or force it on
   -v, --version        Print the version
   -h, --help           Print this
 
@@ -108,6 +109,9 @@ const OPTIONS = {
   "list-rules": { type: "boolean", default: false },
   version: { type: "boolean", short: "v", default: false },
   help: { type: "boolean", short: "h", default: false },
+  // Read by picocolors straight from process.argv; declared so they are accepted.
+  color: { type: "boolean", default: false },
+  "no-color": { type: "boolean", default: false },
 } as const;
 
 const OWN_FLAGS = new Set(Object.keys(OPTIONS).map((name) => `--${name}`));
@@ -149,7 +153,12 @@ export function splitArgv(argv: readonly string[]): SplitArgv {
             `anything after the command, or after --, is passed to the server.`,
         );
       own.push(arg);
-      if (TAKES_VALUE.has(name) && !arg.includes("=") && i + 1 < argv.length) own.push(argv[++i]!);
+      if (TAKES_VALUE.has(name) && !arg.includes("=")) {
+        const value = argv[i + 1];
+        if (value === undefined || value === "--") throw new Error(`${name} needs a value`);
+        own.push(value);
+        i++;
+      }
       continue;
     }
     if (arg.startsWith("-") && arg.length > 1) {
