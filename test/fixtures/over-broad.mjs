@@ -5,6 +5,11 @@ await serve("broad-server", "1.0.0", (s) => {
     inputSchema: { command: z.string() },
     annotations: { readOnlyHint: false, destructiveHint: true },
   }, ok(""));
+  s.registerTool("browser_eval", {
+    description: "Evaluates JavaScript in the page.",
+    inputSchema: { script: z.string() },
+    annotations: { readOnlyHint: false, destructiveHint: true },
+  }, ok(""));
   s.registerTool("write_file", {
     description: "Writes content to a file.",
     inputSchema: { path: z.string(), content: z.string() },

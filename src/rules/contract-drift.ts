@@ -68,7 +68,7 @@ export const contractDrift: Rule = {
         severity: "error",
         tool: c.name,
         message: `${c.fields.join(", ")} changed since the snapshot`,
-        detail: [...c.detail, `accept with: mcpcheck … --update`],
+        detail: [...c.detail, `accept with: mcpcheck --update …`],
       });
     }
     if (diff.serverVersion) {

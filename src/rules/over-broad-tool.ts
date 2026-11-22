@@ -49,7 +49,7 @@ export const overBroadTool: Rule = {
           rule: overBroadTool.id,
           severity: "error",
           tool: tool.name,
-          message: "executes arbitrary commands or code — the model has a terminal",
+          message: "executes arbitrary commands or code the model supplies",
           detail: [
             shellByName
               ? `the name matches ${SHELL_NAME.exec(tool.name)![0].replace(/[_\-.]/g, "")}`
